@@ -1,13 +1,14 @@
-package errcode
+package errorx
 
 import (
 	"fmt"
 )
 
 type Error struct {
-	httpCode int //httpCode
+	httpCode int // httpCode
 	code     int
 	message  string
+	details  []string
 }
 
 func (e *Error) HttpCode() int {
@@ -22,6 +23,10 @@ func (e *Error) Message() string {
 	return e.message
 }
 
+func (e *Error) Details() []string {
+	return e.details
+}
+
 var codes = map[int]string{}
 
 func NewError(httpCode, code int, message string) *Error {
@@ -34,4 +39,13 @@ func NewError(httpCode, code int, message string) *Error {
 
 func (e *Error) Error() string {
 	return fmt.Sprintf("错误码: %d, 错误信息: %s", e.code, e.message)
+}
+
+func (e *Error) WithDetails(details ...string) *Error {
+	_e := *e
+	_e.details = []string{}
+	for _, d := range details {
+		_e.details = append(_e.details, d)
+	}
+	return &_e
 }

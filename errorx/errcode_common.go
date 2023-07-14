@@ -1,4 +1,4 @@
-package errcode
+package errorx
 
 import "net/http"
 
