@@ -5,10 +5,10 @@ import (
 )
 
 type Error struct {
-	httpCode int // httpCode
-	code     int
-	message  string
-	details  []string
+	httpCode int      // HTTP状态码
+	code     int      // 错误码
+	message  string   // 错误信息
+	details  []string // 详情
 }
 
 func (e *Error) HttpCode() int {
