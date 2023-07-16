@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 )
@@ -17,18 +18,20 @@ type Info struct {
 	Num     int    `json:"num" binding:"required"`
 }
 
-func TestName(t *testing.T) {
+func TestGinx(t *testing.T) {
 	e := gin.New()
 	e.Use(AccessLog())
 	e.Use(Recovery())
 	e.Use(ContextTimeout(time.Second))
 	e.Use(TranslateZH())
+
 	e.GET("/demo", func(c *gin.Context) {
 		c.String(http.StatusOK, "demo...")
 		log.Println("demo...")
 		time.Sleep(time.Second * 3)
 		panic("exception...")
 	})
+
 	e.POST("/demo2", func(c *gin.Context) {
 		log.Println("demo2...")
 		var info Info
@@ -52,4 +55,26 @@ func TestName(t *testing.T) {
 	result := w.Body.String()
 	fmt.Println(result)
 	e.ServeHTTP(w, req2)
+}
+
+func TestRateLimiter(t *testing.T) {
+	e := gin.Default()
+	e.GET("/demo3", RateLimiter(time.Second, 10, 10), func(c *gin.Context) {
+		log.Println("demo3...")
+		c.String(http.StatusOK, "demo3...")
+	})
+	req := httptest.NewRequest("GET", "/demo", nil)
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		w := httptest.NewRecorder()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			e.ServeHTTP(w, req)
+			result := w.Body.String()
+			fmt.Println(result)
+		}()
+	}
+	wg.Wait()
+	fmt.Println("over")
 }

@@ -8,9 +8,11 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	zh2 "github.com/go-playground/validator/v10/translations/zh"
+	"github.com/juju/ratelimit"
 	"github.com/liuxianbin/pkg/errorx"
 	"github.com/liuxianbin/pkg/logx"
 	"log"
+	"net/http"
 	"os"
 	"time"
 )
@@ -76,13 +78,28 @@ func AccessLog() gin.HandlerFunc {
 
 // TranslateZH Gin校验信息翻译成中文
 func TranslateZH() gin.HandlerFunc {
+	uni := ut.New(zh.New())
+	trans, _ := uni.GetTranslator("zh")
+	v, ok := binding.Validator.Engine().(*validator.Validate)
+	if ok {
+		zh2.RegisterDefaultTranslations(v, trans)
+	}
 	return func(c *gin.Context) {
-		uni := ut.New(zh.New())
-		trans, _ := uni.GetTranslator("zh")
-		v, ok := binding.Validator.Engine().(*validator.Validate)
-		if ok {
-			_ = zh2.RegisterDefaultTranslations(v, trans)
-			c.Set("trans", trans)
+		c.Set("trans", trans)
+		c.Next()
+	}
+}
+
+var TooManyRequests = errorx.NewError(http.StatusTooManyRequests, 100005, "Too Many Requests")
+
+// RateLimiter 限流
+func RateLimiter(fillInterval time.Duration, capacity, quantum int64) gin.HandlerFunc {
+	b := ratelimit.NewBucketWithQuantum(fillInterval, capacity, quantum)
+	return func(c *gin.Context) {
+		if b.TakeAvailable(1) == 0 {
+			Fail(c, TooManyRequests)
+			c.Abort()
+			return
 		}
 		c.Next()
 	}
