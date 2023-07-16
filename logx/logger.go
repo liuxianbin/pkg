@@ -13,15 +13,22 @@ type Fields map[string]any
 
 type Loggerx struct {
 	*log.Logger
-	fields  Fields
-	callers []string
+	fields       Fields   // 公共字段
+	callers      []string // 调用栈信息
+	callersLevel int      // 调用栈层级
 }
 
 func New(w io.Writer, prefix string, flag int) *Loggerx {
 	l := log.New(w, prefix, flag)
 	return &Loggerx{
-		Logger: l,
+		Logger:       l,
+		callersLevel: 20,
 	}
+}
+
+func (l *Loggerx) SetCallersLevel(callersLevel int) *Loggerx {
+	l.callersLevel = callersLevel
+	return l
 }
 
 func (l *Loggerx) Copy() *Loggerx {
@@ -52,7 +59,7 @@ func (l *Loggerx) WithCaller(skip int) *Loggerx {
 
 func (l *Loggerx) WithCallers() *Loggerx {
 	_l := l.Copy()
-	pcs := make([]uintptr, 20)
+	pcs := make([]uintptr, l.callersLevel)
 	size := runtime.Callers(1, pcs)
 	fs := runtime.CallersFrames(pcs[:size])
 	callers := make([]string, size)[:0]
@@ -72,7 +79,7 @@ func (l *Loggerx) Jsonf(format string, v ...any) {
 }
 
 func (l *Loggerx) Json(v ...any) {
-	data := make(Fields, len(l.fields)+4)
+	data := make(Fields, len(l.fields)+3)
 	data["time"] = time.Now().Local().UnixNano()
 	data["message"] = fmt.Sprint(v...)
 	data["callers"] = l.callers
