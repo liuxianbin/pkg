@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/liuxianbin/pkg/check"
 	"github.com/liuxianbin/pkg/errorx"
+	"net/http"
 )
 
 func ReturnJson(c *gin.Context, httpCode int, dataCode int, msg string) {
@@ -36,6 +37,10 @@ func Auto(c *gin.Context, err error) {
 	} else {
 		Success(c)
 	}
+}
+
+func JSON(c *gin.Context, obj any) {
+	c.JSON(http.StatusOK, obj)
 }
 
 // BindRequest 绑定校验请求参数
