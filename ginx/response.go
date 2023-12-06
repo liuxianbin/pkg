@@ -24,13 +24,14 @@ func Failx(c *gin.Context, err *errorx.Error, appendMsg string) {
 	ReturnJson(c, err.HttpCode(), err.Code(), err.Message()+": "+appendMsg)
 }
 
-func FailMessage(c *gin.Context, msg string) {
+func Error(c *gin.Context, msg string) {
 	ReturnJson(c, errorx.OK.HttpCode(), errorx.InternalServerError.Code(), msg)
 }
 
 // Auto 增删改响应结果
 func Auto(c *gin.Context, err error) {
 	if err != nil {
+		Logger.Printf("Auto is err: %s", err)
 		Fail(c, errorx.InternalServerError)
 	} else {
 		Success(c)

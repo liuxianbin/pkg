@@ -12,7 +12,6 @@ import (
 	"github.com/liuxianbin/pkg/errorx"
 	"github.com/liuxianbin/pkg/logx"
 	"log"
-	"net/http"
 	"os"
 	"time"
 )
@@ -90,14 +89,12 @@ func TranslateZH() gin.HandlerFunc {
 	}
 }
 
-var TooManyRequests = errorx.NewError(http.StatusTooManyRequests, 100005, "Too Many Requests")
-
 // RateLimiter 限流
 func RateLimiter(fillInterval time.Duration, capacity, quantum int64) gin.HandlerFunc {
 	b := ratelimit.NewBucketWithQuantum(fillInterval, capacity, quantum)
 	return func(c *gin.Context) {
 		if b.TakeAvailable(1) == 0 {
-			Fail(c, TooManyRequests)
+			Fail(c, errorx.TooManyRequests)
 			c.Abort()
 			return
 		}
