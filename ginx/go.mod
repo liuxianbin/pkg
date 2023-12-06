@@ -5,8 +5,8 @@ go 1.20
 require github.com/gin-gonic/gin v1.9.1
 
 require (
-	github.com/liuxianbin/pkg/check v0.0.2
-	github.com/liuxianbin/pkg/errorx v0.0.1
+	github.com/liuxianbin/pkg/check v0.0.1
+	github.com/liuxianbin/pkg/errorx v0.0.2
 	github.com/liuxianbin/pkg/logx v0.0.1
 )
 
