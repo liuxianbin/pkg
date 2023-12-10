@@ -17,7 +17,7 @@ func (r *Router) Exists(method string, path string) bool {
 				return true
 			}
 			if index := strings.Index(p, "/:"); index != -1 {
-				if p[:index] == path[:index] {
+				if strings.HasPrefix(path, p[:index]) {
 					return true
 				}
 			}
