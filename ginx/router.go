@@ -1,6 +1,9 @@
 package ginx
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"strings"
+)
 
 type Router struct {
 	*gin.Engine
@@ -12,6 +15,11 @@ func (r *Router) Exists(method string, path string) bool {
 		for _, p := range paths {
 			if p == path {
 				return true
+			}
+			if index := strings.Index(p, "/:"); index != -1 {
+				if p[:index] == path[:index] {
+					return true
+				}
 			}
 		}
 	}
