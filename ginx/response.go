@@ -33,7 +33,11 @@ func Error(c *gin.Context, msg string) {
 func Auto(c *gin.Context, err error) {
 	if err != nil {
 		Logger.Printf("Auto is err: %s", err)
-		Fail(c, errorx.InternalServerError)
+		if _, ok := err.(*errorxString); ok {
+			Error(c, err.Error())
+		} else {
+			Fail(c, errorx.InternalServerError)
+		}
 	} else {
 		Success(c)
 	}

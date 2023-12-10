@@ -25,3 +25,15 @@ func TranslateErrorWithContext(c *gin.Context, err error) (validator.ValidationE
 	}
 	return nil, false
 }
+
+type errorxString struct {
+	s string
+}
+
+func (e *errorxString) Error() string {
+	return e.s
+}
+
+func NewError(text string) error {
+	return &errorxString{text}
+}
