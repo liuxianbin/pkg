@@ -7,11 +7,24 @@ import (
 
 type Router struct {
 	*gin.Engine
-	excludePaths map[string][]string
+	excludeToken      map[string][]string // 无需token登录
+	excludePermission map[string][]string // 无需权限
 }
 
-func (r *Router) Exists(method string, path string) bool {
-	if paths, ok := r.excludePaths[method]; ok {
+const (
+	ANONYMOUS = iota
+	ALLOW
+)
+
+func (r *Router) Exists(retype int, method string, path string) bool {
+	var excludes map[string][]string
+	switch retype {
+	case ALLOW:
+		excludes = r.excludePermission
+	case ANONYMOUS:
+		excludes = r.excludeToken
+	}
+	if paths, ok := excludes[method]; ok {
 		for _, p := range paths {
 			if p == path {
 				return true
@@ -26,8 +39,12 @@ func (r *Router) Exists(method string, path string) bool {
 	return false
 }
 
-func (r *Router) Exclude(method string, path string) {
-	r.excludePaths[method] = append(r.excludePaths[method], path)
+func (r *Router) Anonymous(method string, path string) {
+	r.excludeToken[method] = append(r.excludeToken[method], path)
+}
+
+func (r *Router) Allow(method string, path string) {
+	r.excludePermission[method] = append(r.excludePermission[method], path)
 }
 
 func (r *Router) POST(relativePath string, handlers ...gin.HandlerFunc) (string, string) {
@@ -53,8 +70,9 @@ func (r *Router) PUT(relativePath string, handlers ...gin.HandlerFunc) (string, 
 func NewRouter() *Router {
 	e := gin.New()
 	r := &Router{
-		Engine:       e,
-		excludePaths: make(map[string][]string),
+		Engine:            e,
+		excludeToken:      make(map[string][]string),
+		excludePermission: make(map[string][]string),
 	}
 	return r
 }
