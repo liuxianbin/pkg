@@ -29,9 +29,11 @@ func (r *Router) Exists(retype int, method string, path string) bool {
 			if p == path {
 				return true
 			}
-			if index := strings.Index(p, "/:"); index != -1 {
-				if strings.HasPrefix(path, p[:index]) {
-					return true
+			if strings.Count(p, "/") == strings.Count(path, "/") {
+				if index := strings.Index(p, "/:"); index != -1 {
+					if strings.HasPrefix(path, p[:index]) {
+						return true
+					}
 				}
 			}
 		}
